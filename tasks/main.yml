@@ -7,10 +7,12 @@
 
 - name: create {{ csi_namespace }} namespace
   ansible.builtin.command: kubectl create ns {{ csi_namespace }}
-  when: "'nebulon' not in namespace_test.stdout"
+  register: ns_result
+  failed_when: ns_result.rc > 1
+  changed_when: "'AlreadyExists' not in ns_result.stderr"
 
 - name: Create Nebulon secret file
-  ansible.builtin.command:
+  ansible.builtin.shell:
     cmd: |
       cat <<EOF | tee /tmp/nebulonsecret.yaml
       apiVersion: v1
@@ -28,14 +30,10 @@
 
 - name: Apply Nebulon secret file
   ansible.builtin.command: kubectl apply -f /tmp/nebulonsecret.yaml
-  when: "'nebulon' not in namespace_test.stdout"
+  register: secret_result
+  failed_when: secret_result.rc > 1
+  changed_when: "'AlreadyExists' not in secret_result.stderr"
   tags: namespace
-
-- name: Test if CRDs are already loaded
-  ansible.builtin.command: kubectl get crd | grep -o volumesnapshotclasses
-  register: crd
-  changed_when: false
-  failed_when: "crd.rc == 2"
 
 - name: Install K8s CRDs for snapshot support
   ansible.builtin.command: "{{ crd_url }}{{ item }}"
@@ -45,10 +43,14 @@
     - "client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
     - "deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
     - "deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
-  when: "'volumesnapshotclasses' not in crd.stdout"
+  register: crd_result
+  failed_when: crd_result.rc > 1
+  changed_when: "'AlreadyExists' not in crd_result.stderr"
 
 - name: Add Nebulon Helm repository
   ansible.builtin.command: helm repo add nebulon https://nebulon.github.io/helm-charts
+  register: helm_repo_add
+  changed_when: "'skipping' not in helm_repo_add.stdout"
 
 - name: Check if Nebulon CSI driver already loaded
   ansible.builtin.command: helm list -n {{ csi_namespace }}
