@@ -1,24 +1,16 @@
 ---
 
 - name: Test if {{ csi_namespace }} namespace already exists
-  ansible.builtin.shell: kubectl get ns
+  ansible.builtin.command: kubectl get ns
   register: namespace_test
   changed_when: false
-  tags: 
-  - namespace
-  - crd
 
-- name: create {{ csi_namespace }} namespace 
-  ansible.builtin.shell:
-    cmd: |
-      kubectl create ns {{ csi_namespace }}
+- name: create {{ csi_namespace }} namespace
+  ansible.builtin.command: kubectl create ns {{ csi_namespace }}
   when: "'nebulon' not in namespace_test.stdout"
-  tags: 
-  - namespace
-  - crd
 
 - name: Create Nebulon secret file
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: |
       cat <<EOF | tee /tmp/nebulonsecret.yaml
       apiVersion: v1
@@ -32,29 +24,16 @@
           username: "{{ neb_username }}"
           password: "{{ neb_password }}"
       EOF
-  tags: namespace  
+  tags: namespace
 
 - name: Apply Nebulon secret file
-  ansible.builtin.shell:
-    cmd: |
-      kubectl apply -f /tmp/nebulonsecret.yaml
+  ansible.builtin.command: kubectl apply -f /tmp/nebulonsecret.yaml
   when: "'nebulon' not in namespace_test.stdout"
-  #when: "{{namespace}}" no in namespace.stdout_lines" #not valid syntax
   tags: namespace
-  
-# - name: Test if CRDs are already loaded
-#   shell: kubectl get crd --all-namespaces
-#   register: crd
-#   changed_when: false
-#   tags: crd
-
-# Removing these while waiting for CSI driver 0.1.11
 
 - name: Test if CRDs are already loaded
-  ansible.builtin.shell: 
-    cmd: kubectl get crd | grep -o volumesnapshotclasses
+  ansible.builtin.command: kubectl get crd | grep -o volumesnapshotclasses
   register: crd
-  tags: crd
   changed_when: false
   failed_when: "crd.rc == 2"
 
@@ -66,40 +45,33 @@
     - "client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
     - "deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
     - "deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
-  #when: "'No resources found' in crd.stderr"
   when: "'volumesnapshotclasses' not in crd.stdout"
-  tags: crd, csi
 
 - name: Add Nebulon Helm repository
-  ansible.builtin.shell:
-    cmd: |
-      helm repo add nebulon https://nebulon.github.io/helm-charts
-  tags: csi         
+  ansible.builtin.command: helm repo add nebulon https://nebulon.github.io/helm-charts
 
 - name: Check if Nebulon CSI driver already loaded
-  ansible.builtin.shell:
-    helm list -n {{ csi_namespace }}
+  ansible.builtin.command: helm list -n {{ csi_namespace }}
   register: helm
   changed_when: false
   tags: helm
 
-#TODO: Make the when: conditional check for the correct namespace
+# TODO: Make the when: conditional check for the correct namespace
 # This is breaking as of May 2022 with:
-# "Error: INSTALLATION FAILED: unable to build kubernetes objects from release manifest: 
-# resource mapping not found for name: "nebulon-snap" namespace: "" from "": 
+# "Error: INSTALLATION FAILED: unable to build kubernetes objects from release manifest:
+# resource mapping not found for name: "nebulon-snap" namespace: "" from "":
 # no matches for kind "VolumeSnapshotClass" in version "snapshot.storage.k8s.io/v1beta1" ensure CRDs are installed first
 
 # - name: Install Nebulon CSI driver
 #   ansible.builtin.shell:
 #     cmd: |
-#       helm install csi-nebulon nebulon/csi-nebulon --create-namespace -n {{ csi_namespace }} --set snapshotclass.enabled=true 
+#       helm install csi-nebulon nebulon/csi-nebulon --create-namespace -n {{ csi_namespace }} --set snapshotclass.enabled=true
 #   when: "'nebulon' not in helm.stdout"
 #   tags: csi, helm
 
 # Install the Nebulon CSI driver without snapshot support enabled
 - name: Install Nebulon CSI driver
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: |
-      helm install csi-nebulon nebulon/csi-nebulon --create-namespace -n {{ csi_namespace }} 
+      helm install csi-nebulon nebulon/csi-nebulon --create-namespace -n {{ csi_namespace }}
   when: "'nebulon' not in helm.stdout"
-  tags: csi, helm
