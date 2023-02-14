@@ -1,15 +1,20 @@
 ---
 
-- name: Test if {{ csi_namespace }} namespace already exists
+- name: Test for existing namespace {{ csi_namespace }}
   ansible.builtin.command: kubectl get ns
   register: namespace_test
   changed_when: false
 
-- name: create {{ csi_namespace }} namespace
+- name: Create namespace {{ csi_namespace }}
   ansible.builtin.command: kubectl create ns {{ csi_namespace }}
   register: ns_result
   failed_when: ns_result.rc > 1
   changed_when: "'AlreadyExists' not in ns_result.stderr"
+
+- name: Check for existing Nebulon secret file
+  ansible.builtin.stat:
+    path: /tmp/nebulonsecret.yaml
+  register: secret_check
 
 - name: Create Nebulon secret file
   ansible.builtin.shell:
@@ -27,6 +32,7 @@
           password: "{{ neb_password }}"
       EOF
   tags: namespace
+  when: not secret_check.stat.exists
 
 - name: Apply Nebulon secret file
   ansible.builtin.command: kubectl apply -f /tmp/nebulonsecret.yaml
@@ -57,19 +63,6 @@
   register: helm
   changed_when: false
   tags: helm
-
-# TODO: Make the when: conditional check for the correct namespace
-# This is breaking as of May 2022 with:
-# "Error: INSTALLATION FAILED: unable to build kubernetes objects from release manifest:
-# resource mapping not found for name: "nebulon-snap" namespace: "" from "":
-# no matches for kind "VolumeSnapshotClass" in version "snapshot.storage.k8s.io/v1beta1" ensure CRDs are installed first
-
-# - name: Install Nebulon CSI driver
-#   ansible.builtin.shell:
-#     cmd: |
-#       helm install csi-nebulon nebulon/csi-nebulon --create-namespace -n {{ csi_namespace }} --set snapshotclass.enabled=true
-#   when: "'nebulon' not in helm.stdout"
-#   tags: csi, helm
 
 # Install the Nebulon CSI driver without snapshot support enabled
 - name: Install Nebulon CSI driver
