@@ -1,0 +1,8 @@
+---
+
+# Vault protected credentials
+neb_username: "{{ vault_neb_username }}"
+neb_password: "{{ vault_neb_password }}"
+
+# Namespace to install the Nebulon CSI driver to
+csi_namespace: "nebulon"

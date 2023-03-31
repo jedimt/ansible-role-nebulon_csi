@@ -1,11 +1,4 @@
 ---
 
-# Vault protected credentials
-neb_username: "{{ vault_neb_username }}"
-neb_password: "{{ vault_neb_password }}"
-
 # Custom resource definition (CRD) URL prepend for installing necessary CRDs for the CSI driver
 crd_url: "kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/"
-
-# Namespace to install the Nebulon CSI driver to
-csi_namespace: "nebulon"
