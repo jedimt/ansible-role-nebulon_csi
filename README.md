@@ -28,7 +28,7 @@ Role Variables
 Dependencies
 ------------
 
-This role relies on the `ansible-role-helm-install` role to install Helm or a working Helm installation.
+This role relies on the `jedimt.ansible-role-helm-install` role to install Helm or a working Helm installation.
 
 Example Playbook
 ----------------
@@ -37,17 +37,17 @@ Example Playbook
     # Install the Nebulon CSI driver
     # ===========================================================================
     - name: Nebulon CSI driver install
-    hosts: k8s_master
-    become: true
-    gather_facts: false
-    tags: play_nebulon_csi
+      hosts: k8s_master
+      become: true
+      gather_facts: false
+      tags: play_nebulon_csi
 
     vars_files:
-        # Ansible vault with all required passwords
-        - "../../credentials.yml"
+      # Ansible vault with all required passwords
+      - "../../credentials.yml"
 
     roles:
-        - { role: ansible-role-nebulon-csi-install, csi_namespace: nebulon }
+      - { role: ansible-role-nebulon-csi-install, csi_namespace: nebulon }
 
 License
 -------
