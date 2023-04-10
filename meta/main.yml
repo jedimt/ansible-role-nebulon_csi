@@ -21,4 +21,3 @@ galaxy_info:
 
 dependencies:
   - role: jedimt.ansible-role-helm-install
-
