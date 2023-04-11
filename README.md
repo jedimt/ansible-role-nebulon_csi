@@ -28,7 +28,7 @@ Role Variables
 Dependencies
 ------------
 
-This role relies on the `jedimt.helm` role to install Helm or a working Helm installation.
+Requires a working Helm install. If Helm is not installed the `jedimt.helm` role can be used to install it.
 
 Example Playbook
 ----------------
