@@ -20,4 +20,4 @@ galaxy_info:
     - csi
 
 dependencies:
-  - role: jedimt.ansible-role-helm-install
+  - role: jedimt.helm
