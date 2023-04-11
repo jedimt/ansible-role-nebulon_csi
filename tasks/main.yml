@@ -28,8 +28,8 @@
       type: Opaque
       stringData:
           api_endpoint: "https://ucapi.nebcloud.nebuloninc.com"
-          username: "{{ neb_username }}"
-          password: "{{ neb_password }}"
+          username: "{{ vault_neb_username }}"
+          password: "{{ vault_neb_password }}"
       EOF
   tags: namespace
   when: not secret_check.stat.exists

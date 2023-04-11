@@ -28,7 +28,7 @@ Role Variables
 Dependencies
 ------------
 
-This role relies on the `jedimt.ansible-role-helm-install` role to install Helm or a working Helm installation.
+This role relies on the `jedimt.helm` role to install Helm or a working Helm installation.
 
 Example Playbook
 ----------------
@@ -47,7 +47,7 @@ Example Playbook
       - "../../credentials.yml"
 
     roles:
-      - { role: ansible-role-nebulon-csi-install, csi_namespace: nebulon }
+      - { role: jedimt.nebulon_csi, csi_namespace: nebulon }
 
 License
 -------

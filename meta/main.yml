@@ -1,6 +1,6 @@
 galaxy_info:
   author: jedimt
-  role_name: nebulon_csi_install
+  role_name: nebulon_csi
   description: Install Nebulon container storage interface (CSI) driver
   company: Nebulon
 
